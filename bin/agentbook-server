@@ -1,0 +1,54 @@
+#!/bin/sh
+# agentbook-server                 run it: the page, and everything its person's machines send. Under
+#                                  Node's permission model, it reads only its own code and data, writes only its
+#                                  data, and starts no processes.
+#                                  AGENTBOOK_SERVER_HOME (its data, ~/.agentbook/server), AGENTBOOK_SERVER_PORT
+#                                  (4310), AGENTBOOK_SERVER_HOST (127.0.0.1), AGENTBOOK_SERVER_URL (its address)
+# agentbook-server link                     a one-time code that links another machine of yours to this one
+# agentbook-server import FOLDER [--server URL]  take in an agentbook data folder from before the split, stopped
+# agentbook-server backup FOLDER            a copy of its data, while it runs
+# agentbook-server secret-key               a new key for AGENTBOOK_SECRET_KEY (encrypts the API keys it keeps)
+# agentbook-server cli-latest [VERSION|none] the newest agentbook-cli its machines are told of, with no restart
+# Settings it takes from the environment can be in .env at the top of this folder (AGENTBOOK_SECRET_KEY=…), kept
+# out of git, so whatever starts it (agentbook up, agentbook-cli bringing it back, an agent's restart) has them. What
+# the environment sets wins over the file. With no AGENTBOOK_SECRET_KEY in either, it uses the machine's own, in
+# ~/.config/agentbook/secret-key, made the first time.
+# Real paths, with no symlinks on the way: Node's permission model doesn't let it follow one it wasn't given.
+here="$(cd "$(dirname "$0")/.." && pwd -P)"
+data="${AGENTBOOK_SERVER_HOME:-${AGENTBOOK_HOME:-$HOME/.agentbook}/server}"
+env_file="$here/.env"
+[ -f "$env_file" ] || env_file=""
+case "$1" in
+  link|import|backup|secret-key|cli-latest)
+    exec node ${env_file:+"--env-file=$env_file"} "$here/server/admin.ts" "$@" ;;
+  *)
+    mkdir -p "$data" && data="$(cd "$data" && pwd -P)"
+    # Its storage (storage.db, plugin/shared/storage.ts) is in agentbook's data folder when its own is the usual
+    # server/ in it, shared with this machine's agentbook-cli: that file is read and written there too, nothing else.
+    # Both by their real paths, as the server is given them.
+    home="${AGENTBOOK_HOME:-$HOME/.agentbook}"
+    storage=""
+    if [ "$data" = "$(cd "$home/server" 2>/dev/null && pwd -P)" ]; then
+      export AGENTBOOK_HOME="$(cd "$home" && pwd -P)"
+      storage="$AGENTBOOK_HOME/storage.db*"
+    fi
+    export AGENTBOOK_SERVER_HOME="$data"
+    # agentbook-cli and the plugin as one file in its data, for the cloud machines it makes to download
+    # (server/cli-bundle.ts). Made here, since the server can't read the plugin: it only hands the file on.
+    if [ -d "$here/.claude-plugin" ] && [ -f "$here/bin/agentbook-cli" ]; then
+      ( cd "$here" && tar -czf "$data/cli-bundle.tgz.new" --exclude .DS_Store --exclude node_modules .claude-plugin plugin bin/agentbook-cli package.json 2>/dev/null \
+        && mv "$data/cli-bundle.tgz.new" "$data/cli-bundle.tgz" \
+        && sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' plugin/.claude-plugin/plugin.json | head -1 > "$data/cli-bundle.version" ) || rm -f "$data/cli-bundle.tgz.new"
+    fi
+    # Its page, built for it (build.ts --web): under Node's permission model it can't start esbuild, nor read web/.
+    # Unless it's built already (AGENTBOOK_WEB_DIR).
+    if [ -z "$AGENTBOOK_WEB_DIR" ]; then
+      node "$here/build.ts" --web "$data/web" || { echo "agentbook-server: couldn't build its page: run npm install in $here first." >&2; exit 1; }
+      export AGENTBOOK_WEB_DIR="$data/web"
+    fi
+    # With no secret key in the environment or .env, the one this machine keeps for itself, outside its data
+    # (plugin/shared/secret-key.ts), made the first time: under the permission model the server can't read it there.
+    own_key="$(node ${env_file:+"--env-file=$env_file"} "$here/plugin/shared/secret-key.ts")" || exit 1
+    [ -z "$own_key" ] || export AGENTBOOK_SECRET_KEY="$own_key"
+    exec node ${env_file:+"--env-file=$env_file"} --permission --allow-fs-read="$here/server/" --allow-fs-read="$AGENTBOOK_WEB_DIR/" --allow-fs-read="$here/plugin/shared/" --allow-fs-read="$here/plugin/door/" --allow-fs-read="$data/" --allow-fs-write="$data/" ${storage:+"--allow-fs-read=$storage" "--allow-fs-write=$storage"} "$here/server/main.ts" "$@" ;;
+esac

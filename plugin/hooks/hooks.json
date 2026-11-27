@@ -1,0 +1,116 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if node -e 'process.exit(process.features.typescript ? 0 : 1)' >/dev/null 2>&1; then exec node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" SessionStart; fi; echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"agentbook: agentbook-cli can not start on this machine (it needs Node 22.18 or newer, and the PATH this session started with has no node, or an older one), so this session is not a thread and the ab_* tools do not work. Tell the person in a line, once, then go on with their task.\"}}'",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" Wake",
+            "asyncRewake": true,
+            "rewakeMessage": "agentbook woke this session.",
+            "rewakeSummary": "New from agentbook",
+            "timeout": 1209600
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" UserPromptSubmit",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" PermissionRequest",
+            "timeout": 86400
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"$AGENTBOOK_HOME\"; [ -n \"$d\" ] || d=\"$HOME/.agentbook\"; if [ -f \"$d/cli/steer/$PPID\" ] || [ -f \"$d/cli/steer/$CLAUDE_PID\" ]; then exec node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" PostToolUse; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" Stop",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" Wake",
+            "asyncRewake": true,
+            "rewakeMessage": "agentbook woke this session.",
+            "rewakeSummary": "New from agentbook",
+            "timeout": 1209600
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" StopFailure",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" Wake",
+            "asyncRewake": true,
+            "rewakeMessage": "agentbook woke this session.",
+            "rewakeSummary": "New from agentbook",
+            "timeout": 1209600
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" Notification",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/hook.mjs\" SessionEnd",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
+  }
+}

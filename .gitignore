@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+error.log
+.claude/worktrees/
+# agentbook-server's settings with secrets in them (AGENTBOOK_SECRET_KEY), read by bin/agentbook-server
+.env
+# The one-file build (node build.ts): dist/plugin/, and the agentbook.mjs a release or a plugin copy builds
+dist/
+plugin/agentbook.mjs

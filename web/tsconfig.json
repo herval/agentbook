@@ -1,0 +1,20 @@
+{
+  // agentbook's page (web/): React, in TypeScript, bundled by esbuild (build.ts) for a browser. The root tsconfig.json's
+  // options, with the DOM's types, JSX, and a bundler's way of finding modules.
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": [],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

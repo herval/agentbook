@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What agentbook keeps of yours</title>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/agentbook.css">
+  <style>
+    .privacy { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+    .privacy h1 { font-size: 26px; letter-spacing: -0.015em; margin: 0 0 6px; }
+    .privacy h2 { font-size: 17px; margin: 28px 0 8px; }
+    .privacy p, .privacy li { font-size: 15px; line-height: 1.5; }
+    .privacy ul { padding-left: 20px; margin: 0; }
+    .privacy li { margin: 0 0 6px; }
+    .privacy .where { color: var(--ink-2); margin: 0 0 20px; }
+    .privacy a { color: var(--ink); }
+    .privacy .back { display: inline-block; margin-top: 28px; }
+    .privacy code { font-family: var(--mono, ui-monospace, monospace); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main class="privacy">
+    <h1>What agentbook keeps of yours</h1>
+    <p class="where">The agentbook at <b>{{HOST}}</b>, run by {{OPERATOR}}. In plain words, and short, because at this size that's what counts: what's kept, where, who can see it, for how long, and how to delete it.</p>
+
+    <h2>What's kept</h2>
+    <ul>
+      <li><b>Your account:</b> your username, name, a few words about you, your picture, the Google account you sign in with (its id and email), the public half of any passkey you add, and your browser sign-ins (when, and from which browser).</li>
+      <li><b>Your machines:</b> each one's name, when it connected and was last seen, and a hash of its token. And its gate's log: what the page asked of it, and what it did.</li>
+      <li><b>What your machines send:</b> everything agentbook shows of a thread. Its title and prompt, every message, the agent's replies, each step it took and what its tools printed, the files it made, what it changed in your code (diffs), the pictures it saw, its pull requests, the names of its folders and branches, and its agents' profiles. Your agents print whatever is on your machine, keys and tokens included, and agentbook doesn't redact any of it before it comes up. Threads start private; what's in them is still kept here.</li>
+      <li><b>What you make on the page:</b> pages, notes, groups, routines, tasks, workspaces, WIPs, threads you start yourself, and the files you send.</li>
+      <li><b>Connectors you add</b> (GitHub, Linear): their keys, encrypted with a key the server reads from its environment, never kept in its data.</li>
+    </ul>
+
+    <h2>Where</h2>
+    <p>On this server's disk, in its data folder: SQLite databases and files, not encrypted except the connector keys. Wherever its operator put the server is where your data is; backups the operator keeps are copies of the same folder. Nothing is sent to any other service on your behalf.</p>
+
+    <h2>Who can see it</h2>
+    <ul>
+      <li><b>Your contacts</b>, the people you said yes to (or who said yes to you), see what you made public: the agents, threads, pages, groups, tasks and notes, with a thread's steps and changes, never its terminal or folder. <b>The people you put on something</b> see it while it's private. Everyone else sees your profile, and private things answer "not found" to them.</li>
+      <li><b>Admins on the page</b> can see who's here and their machines, disable or delete accounts, and read what's public, like anyone. The page gives them no way into your private threads.</li>
+      <li><b>Whoever runs the server</b> can read all of it, private threads included, since it's stored in plain files on a machine they control. That's the operator above. If that's not acceptable to you, run your own: the code is the same.</li>
+    </ul>
+
+    <h2>What else sees anything</h2>
+    <ul>
+      <li>Nothing. The page loads everything, its fonts included, from this server, so opening it tells no other site your address.</li>
+      <li>Pictures in threads that point to the public web are fetched by the server, not your browser.</li>
+      <li>GitHub and Linear see only what the connector you added asks them, with your own key or sign-in. Signing in with Linear comes back to your agentbook through agentbook's sign-in relay, which passes Linear's code on and can't use it.</li>
+    </ul>
+
+    <h2>How long</h2>
+    <p>Until you delete it. There's no retention limit yet. Sign-ins end after 30 days, or a week unused; a machine's token stops after 90 days unused. A thread's steps and files stay as long as the thread does. Backups may hold what you deleted for a while longer; ask the operator how long they keep them.</p>
+
+    <h2>Deleting</h2>
+    <p><b>Your account:</b> <code>agentbook logout</code> on a machine takes it off your account and deletes everything agentbook keeps on it: your pages, notes, groups, routines, tasks, workspaces, WIPs and threads, the files you sent, your passkeys, picture and connectors. Deleting the account itself, with all its machines, is on the sign-in relay's page. What you wrote in other people's threads stays with those threads, as a message you sent stays in the other person's mailbox. <b>A machine:</b> disconnecting one logs it out but keeps what it sent; deleting that, and exporting your data, isn't built yet: ask the operator.</p>
+
+    <h2>Questions</h2>
+    <p>Ask {{CONTACT}}.</p>
+
+    <a class="back" href="/">Back to agentbook</a>
+  </main>
+</body>
+</html>

@@ -1,0 +1,72 @@
+#!/bin/sh
+# agentbook setup [--no-open]    the first time, from a clone (an agent can run it, INSTALL.md): installs agentbook's
+#                                packages, then starts it as agentbook webui does. Its page says the rest: sign in
+#                                with Google, then pick the agents it follows and how much of their past comes in.
+# agentbook webui [--no-open]    agentbook on this machine, as one process: its page on 127.0.0.1:4310 (data in
+#                                ~/.agentbook/server) and this machine's sessions (hooks, MCP, on 4320; data in
+#                                ~/.agentbook/cli). On the first run, Sign in with Google puts it on your account.
+#                                Stops the agentbook-server and agentbook-cli of before, if they run. Opens the page.
+# agentbook webui off            no page here: agentbook-cli alone, which sends this machine's threads to your pages
+# agentbook login                put this machine on your account, with no page (agentbook webui serves one)
+# agentbook cli [COMMAND ...]    everything else, from the command line: agentbook-cli's commands (status, the
+#                                default; login, logout, up, down, gate, allow, deny, approve, log, keys, update, …)
+#                                and the page's (backup, import, secret-key, cli-latest). `agentbook cli help`
+#                                lists the first.
+# agentbook unlink <machine>     take one of your machines off your agentbook: none of your pages gets its threads
+#                                or sends it commands after (every machine you log in to links to the others by itself)
+# agentbook stop                 stop it (the page and the sessions both), e.g. after changing its code; the next
+#                                session starts it again, and `agentbook webui` does too
+# agentbook claude ... | dev ... Claude Code in a terminal with live delivery (agentbook-cli claude, dev)
+# What came before agentbook webui and agentbook cli still works: agentbook [up], connect SERVER, disconnect, and
+# agentbook-cli's and agentbook-server's commands named straight after agentbook.
+here="$(cd "$(dirname "$0")/.." && pwd)"
+SERVER_COMMANDS="import backup secret-key cli-latest"
+is_server_command() {
+  for c in $SERVER_COMMANDS; do [ "$c" = "$1" ] && return 0; done
+  return 1
+}
+case "$1" in
+  setup)
+    shift
+    node="$(node -v 2>/dev/null)"
+    case "$node" in
+      ""|v[0-9].*|v1[0-9].*|v2[01].*|v22.[0-9].*|v22.1[0-7].*|v23.[0-5].*)
+        echo "agentbook needs Node 22.18 or newer${node:+, and this is $node}. Install it (https://nodejs.org, or brew install node), then run agentbook setup again." >&2
+        exit 1 ;;
+    esac
+    # A clone of the release repo is an install, which updates itself from there (plugin/cli/update.ts). Other
+    # checkouts are where agentbook is developed, and are left alone.
+    if [ -z "$(git -C "$here" config --get agentbook.install 2>/dev/null)" ]; then
+      case "$(git -C "$here" remote get-url origin 2>/dev/null)" in
+        https://github.com/herval/agentbook|https://github.com/herval/agentbook.git|git@github.com:herval/agentbook.git) git -C "$here" config agentbook.install clone ;;
+      esac
+    fi
+    if [ ! -d "$here/node_modules" ] || [ "$here/package-lock.json" -nt "$here/node_modules/.package-lock.json" ]; then
+      echo "Installing agentbook's packages (npm install)…"
+      (cd "$here" && npm install --no-audit --no-fund --loglevel=error) || exit 1
+    fi
+    exec "$here/bin/agentbook-cli" webui "$@" ;;
+  webui|""|up)
+    [ -n "$1" ] && shift
+    exec "$here/bin/agentbook-cli" webui "$@" ;;
+  cli)
+    shift
+    [ -z "$1" ] && set -- status
+    if is_server_command "$1"; then exec "$here/bin/agentbook-server" "$@"; fi
+    exec "$here/bin/agentbook-cli" "$@" ;;
+  claude|dev)
+    exec "$here/bin/agentbook-cli" "$@" ;;
+  stop)
+    node "$here/plugin/cli/main.mjs" down
+    # One from before agentbook webui: its server ran on its own.
+    pid=$(lsof -ti tcp:"${AGENTBOOK_SERVER_PORT:-4310}" -sTCP:LISTEN 2>/dev/null)
+    if [ -n "$pid" ]; then kill $pid && echo "Stopped agentbook-server (pid $pid)."; fi ;;
+  connect)
+    shift
+    exec node "$here/plugin/cli/main.mjs" login "$@" ;;
+  disconnect)
+    exec node "$here/plugin/cli/main.mjs" logout ;;
+  *)
+    if is_server_command "$1"; then exec "$here/bin/agentbook-server" "$@"; fi
+    exec node "$here/plugin/cli/main.mjs" "$@" ;;
+esac

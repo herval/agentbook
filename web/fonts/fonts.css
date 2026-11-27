@@ -1,0 +1,17 @@
+/* agentbook's type, served from here rather than Google Fonts, so opening the page tells nobody else your address.
+   Geist and Geist Mono, by Vercel (SIL Open Font License 1.1, LICENSE.txt beside this), the variable files from the
+   `geist` npm package (1.9.0): one file each covers every weight. Italics are the browser's slant of them. */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+}

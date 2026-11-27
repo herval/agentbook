@@ -1,0 +1,13 @@
+// What the machine pages say in words: a command's kind, how a machine's gate dealt with one, machine time and
+// boat's dollars, and the dates these pages show. Ported from the old page as they were.
+
+export const day = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+// How a machine's gate dealt with a command: its word and its chip's class.
+export const OUTCOME: Record<string, [string, string]> = { ran: ["Ran", "chip--done"], refused: ["Refused", "chip--off"], asked: ["Asked there", ""], approved: ["OK'd there", "chip--done"] };
+export const KIND_WORDS: Record<string, string> = { "term.lease": "Keep typing in a terminal", "history.pick": "Pick what comes in from before", "post.start": "Start a thread", "post.deliver": "Deliver a message", "post.answer": "Answer", "post.notify": "Tell a thread", "post.stop": "Stop", "post.model": "Switch model", "post.effort": "Switch effort", "post.mode": "Switch mode", "post.sleep": "Archive", "post.apply": "Apply a cloud change", "cli.update": "Update agentbook-cli", "post.resend": "Send a message again", "post.discard": "Delete a message that wasn't delivered", "folder.restore": "Put a thread's folder back", "post.pickup": "Retry a turn an API error cut off", "cloud.pull": "Pull from the cloud", "routine.do": "Act on a routine", "page_routine.run": "Run a page's routine", "wip.clean": "Clean up a branch", "wip.discard": "Discard a branch", "workspace.clone": "Clone a repo", "folder.trust": "Trust a folder in Claude Code", "openclaw.pair": "Pair with OpenClaw", "keys.pin": "Keep your passkeys", "keys.change": "Change its passkeys", "keys.vouch": "Take signatures from another page of yours", "claude.login": "Sign Claude Code in", "cloud.setup": "Update it to its image's newest version", "members.change": "Change who's on it", "members.enroll": "Hand a member's seat its login", "seat.secret": "Set one of your secrets there", "post.wip": "Tell a thread its task", "post.group": "Tell a thread its group", "post.page": "Tell a thread its page" };
+export const kindWords = (k: string): string => KIND_WORDS[k] || (String(k).startsWith("read.") ? `Read ${String(k).slice(5).replace(/_/g, " ")}` : k);
+
+// A length of machine time, as people say it: "42 minutes", "3.5 hours".
+export const machineTime = (seconds: number): string => (seconds < 3600 ? `${Math.round(seconds / 60)} ${Math.round(seconds / 60) === 1 ? "minute" : "minutes"}` : `${(seconds / 3600).toFixed(seconds < 36000 ? 1 : 0)} hours`);
+export const boatDollars = (n: number): string => `$${n < 1 ? n.toFixed(n < 0.1 ? 3 : 2) : n.toFixed(2)}`;

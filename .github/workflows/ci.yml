@@ -1,0 +1,45 @@
+name: CI
+
+# Every test in test/ on every push to main, unless it changed only docs (about 7% of commits). This repo is private,
+# so it pays for its minutes, and a run takes about 7.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "*.md"]
+  pull_request:
+    paths-ignore: ["docs/**", "*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time, and it always finishes. Agents push in bursts: a newer push takes the waiting one's place, so
+# the last commit of a burst is checked and the ones between aren't. Cancelling instead could keep a run from ever
+# finishing while they push.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    # Linux, as the hub is. A Mac runner costs ten times the minutes, and what the tests fake doesn't need a Mac.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      # The page's packages (React and the rest) and esbuild, which the tests build the page with (build.ts --web).
+      - run: npm ci --no-audit --no-fund
+      # Four at a time takes it from 16 minutes to 7. test/page.ts drives the page in the runner's Chrome.
+      - run: make test
+        env:
+          AGENTBOOK_TEST_JOBS: 4
+      # Shared machines' seats (test/seats.ts) make and delete real Linux users, which takes root. The runner has sudo.
+      - name: Seats, as root
+        run: sudo "$(command -v node)" test/seats.ts
+      # And the helper that adds and removes them for a shared machine's owner (test/seat-helper.ts).
+      - name: Seats helper, as root
+        run: sudo "$(command -v node)" test/seat-helper.ts

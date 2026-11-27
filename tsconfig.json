@@ -1,0 +1,22 @@
+{
+  // agentbook is TypeScript that Node runs as it is (type stripping, Node 22.18+): no build step, nothing emitted.
+  // `make typecheck` (tsc) checks it. Only syntax Node can erase: no enums, namespaces or parameter properties, and
+  // a type imported as one (`import type`). The page's code (web/) runs in a browser: web/tsconfig.json.
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": ["plugin/**/*.ts", "server/**/*.ts", "test/**/*.ts", "deploy/**/*.ts"],
+  "exclude": ["node_modules", "web"]
+}
